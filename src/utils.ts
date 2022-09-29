@@ -1,14 +1,29 @@
 import {format} from 'prettier/standalone';
 import parserBabel from 'prettier/parser-babel';
 import {ThemeConfig} from "antd/es/config-provider/context";
+import {set} from 'lodash';
+import {adapter} from './adapter';
 
 const lessToPairs = (less: string): Record<string, string> => {
-  return {}
+  const pairs: Record<string, string> = {};
+  const lines = less.split(/[;\n]/);
+  lines.forEach(line => {
+    const segments = line.split(':');
+    if(segments[1]) {
+      pairs[segments[0]?.trim()] = segments[1]?.trim()
+    }
+  });
+  return pairs;
 };
 
 const pairsToTheme = (pairs: Record<string, string>): ThemeConfig => {
-  // TODO import adapter
-  return {token: {colorPrimary: '#1890ff', colorSuccess: '#52c41a'}}
+  const theme: ThemeConfig = {};
+  Object.entries(adapter).forEach(([key, path]) => {
+    if(pairs[key]) {
+      set(theme, path, pairs[key])
+    }
+  });
+  return theme;
 };
 
 // 将 theme object 转成代码
@@ -40,5 +55,5 @@ export const lessToCode = (less: string): string => {
   const pairs = lessToPairs(less);
   const theme = pairsToTheme(pairs);
   const code = themeToCode(theme);
-  return code
+  return code;
 };

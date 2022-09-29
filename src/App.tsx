@@ -39,7 +39,7 @@ function App() {
         height="100vh"
         defaultLanguage="less"
         options={{domReadOnly: true, readOnly: true, cursorBlinking: 'solid'}}
-        defaultValue={result}
+        value={result}
       />
     </Container>
   );
