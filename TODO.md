@@ -1,0 +1,9 @@
+- [x] basic less variable find
+- [x] resizer
+- [ ] header
+- [ ] light/dark mode
+- [ ] prettier config
+- [ ] copy button
+- [ ] visit adapter
+- [ ] warning about less functions
+- [ ] full adapter

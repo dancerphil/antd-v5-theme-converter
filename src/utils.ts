@@ -2,13 +2,19 @@ import {format} from 'prettier/standalone';
 import parserBabel from 'prettier/parser-babel';
 import {ThemeConfig} from "antd/es/config-provider/context";
 import {set} from 'lodash';
+import {TinyColor} from '@ctrl/tinycolor';
 import {adapter} from './adapter';
 
-const lessToPairs = (less: string): Record<string, string> => {
+// 增加这个函数的复杂度也只能解决一定的问题，但不能解决所有问题，有必要的时候直接用 less ast 来处理
+export const lessToPairs = (less: string): Record<string, string> => {
   const pairs: Record<string, string> = {};
   const lines = less.split(/[;\n]/);
-  lines.forEach(line => {
-    const segments = line.split(':');
+  // 这是另一种处理方法，但是结果上是一致的
+  // const lines = less.split('\n');
+  // const codeLines = lines.filter(line => line && !line.startsWith('//'));
+  // const statements = codeLines.flatMap(line => line.split(';'));
+  lines.forEach(statement => {
+    const segments = statement.split(':');
     if(segments[1]) {
       pairs[segments[0]?.trim()] = segments[1]?.trim()
     }
@@ -16,11 +22,20 @@ const lessToPairs = (less: string): Record<string, string> => {
   return pairs;
 };
 
-const pairsToTheme = (pairs: Record<string, string>): ThemeConfig => {
+const findPairValue = (pairs: Record<string, string>, key: string) => {
+  let value = pairs[key];
+  while(value?.startsWith('@') && pairs[value]) {
+    value = pairs[value]
+  }
+  return value;
+};
+
+export const pairsToTheme = (pairs: Record<string, string>): ThemeConfig => {
   const theme: ThemeConfig = {};
   Object.entries(adapter).forEach(([key, path]) => {
-    if(pairs[key]) {
-      set(theme, path, pairs[key])
+    const value = findPairValue(pairs, key);
+    if(value) {
+      set(theme, path, value)
     }
   });
   return theme;
@@ -29,7 +44,10 @@ const pairsToTheme = (pairs: Record<string, string>): ThemeConfig => {
 // 将 theme object 转成代码
 const toNaiveString = (object: object): string => {
   if(typeof object !== 'object') {
-    return `'${String(object)}',`
+    if(new TinyColor(object).isValid) {
+      return `'${String(object)}',`
+    }
+    return `\`Invalid: ${object}\`,`;
   }
   const lines = Object.entries(object).map(([key, value]) => {
     return `${key}: ${toNaiveString(value)}`
@@ -52,8 +70,14 @@ const themeToCode = (theme: ThemeConfig) => {
 };
 
 export const lessToCode = (less: string): string => {
-  const pairs = lessToPairs(less);
-  const theme = pairsToTheme(pairs);
-  const code = themeToCode(theme);
-  return code;
+  try {
+    const pairs = lessToPairs(less);
+    const theme = pairsToTheme(pairs);
+    const code = themeToCode(theme);
+    return code;
+  }
+  catch (e) {
+    return `转换过程中有以下错误：
+${e.message}`;
+  }
 };
