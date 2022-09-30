@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
-import {ThemeMode} from "./ThemeMode";
+import {ThemeButton} from "./Theme";
+import {useTranslate, TranslateButton} from './Translate';
 
 const Container = styled.div`
   display: flex;
@@ -16,17 +17,23 @@ const Right = styled.div`
   gap: 3px;
 `;
 
+const Note = styled.span`
+  margin-left: 10px;
+  font-size: 12px;
+  color: var(--description-color);
+`;
+
 export const Header = () => {
+  const t = useTranslate();
   return (
     <Container>
-      antd v5 theme converter
+      <div>
+        {t('antd v5 主题转换工具')}
+        <Note>{t('注：暂不支持less函数')}</Note>
+      </div>
       <Right>
-        <ThemeMode />
-        {/*<Button disabled size="small" type="text" icon="}," />*/}
-        {/*<Button disabled size="small" type="text" icon="} " />*/}
-        {/*<Button disabled size="small" type="text" icon="2" />*/}
-        {/*<Button disabled size="small" type="text" icon="4" />*/}
-        {/*<Button disabled size="small" type="text" icon={<SettingOutlined />} />*/}
+        <TranslateButton />
+        <ThemeButton />
       </Right>
     </Container>
   )

@@ -3,7 +3,7 @@ import parserBabel from 'prettier/parser-babel';
 import {ThemeConfig} from "antd/es/config-provider/context";
 import {set} from 'lodash';
 import {TinyColor} from '@ctrl/tinycolor';
-import {adapter} from './adapter';
+import {colorPalettes, adapter} from './adapter';
 
 // 增加这个函数的复杂度也只能解决一定的问题，但不能解决所有问题，有必要的时候直接用 less ast 来处理
 export const lessToPairs = (less: string): Record<string, string> => {
@@ -32,6 +32,13 @@ const findPairValue = (pairs: Record<string, string>, key: string) => {
 
 export const pairsToTheme = (pairs: Record<string, string>): ThemeConfig => {
   const theme: ThemeConfig = {};
+  colorPalettes.forEach(color => {
+    const key = `@${color}`;
+    const value = findPairValue(pairs, key);
+    if(value) {
+      set(theme, ['token', color], value)
+    }
+  });
   Object.entries(adapter).forEach(([key, path]) => {
     const value = findPairValue(pairs, key);
     if(value) {
@@ -41,16 +48,18 @@ export const pairsToTheme = (pairs: Record<string, string>): ThemeConfig => {
   return theme;
 };
 
+const toValidKey = (key: string) => key.includes('-') ? `'${key}'`: key;
+
 // 将 theme object 转成代码
 const toNaiveString = (object: object): string => {
   if(typeof object !== 'object') {
     if(new TinyColor(object).isValid) {
       return `'${String(object)}',`
     }
-    return `\`Invalid: ${object}\`,`;
+    return `"Not Support: ${object}",`;
   }
   const lines = Object.entries(object).map(([key, value]) => {
-    return `${key}: ${toNaiveString(value)}`
+    return `${toValidKey(key)}: ${toNaiveString(value)}`
   });
 
   return [`{`, ...lines, `},`].join('\n');

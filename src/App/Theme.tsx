@@ -2,13 +2,13 @@ import {createRegion} from 'region-core';
 import {Button} from 'antd';
 import {SunOutlined, MoonOutlined} from './Icons';
 
-const themeModeRegion = createRegion<'dark' | 'light'>('dark')
+const themeModeRegion = createRegion<'dark' | 'light'>('dark');
 
 export const useThemeMode = themeModeRegion.useValue;
 
 const toggleThemeMode = () => themeModeRegion.set(value => value === 'light' ? 'dark' : 'light')
 
-export const ThemeMode = () => {
+export const ThemeButton = () => {
     const themeMode = useThemeMode();
 
     return (

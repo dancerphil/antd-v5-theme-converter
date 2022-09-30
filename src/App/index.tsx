@@ -1,12 +1,13 @@
 import styled from "@emotion/styled";
 import Editor from "@monaco-editor/react";
-import {useCallback, useState} from "react";
+import {useState} from "react";
 import {ConfigProvider, theme} from 'antd';
 import {lessToCode} from './utils';
 import {Header} from './Header';
 import {ColumnResizer, useResizerLeft} from "./ColumnResizer";
 import {defaultLess} from "./defaultLess";
-import {useThemeMode} from "./ThemeMode";
+import {useThemeMode} from "./Theme";
+import {useTranslate} from "./Translate";
 
 const introduction = defaultLess;
 // const introduction = `// 在此处键入你的 less 变量列表，如：
@@ -18,15 +19,21 @@ const Container  = styled.div`
   display: flex;
 `;
 
-const Loading = styled.div`
+const LoadingContainer = styled.div`
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
+  font-size: 12px;
   background-color: var(--editor-background-color);
-  color: var(--text-color);
+  color: var(--description-color);
 `;
+
+const Loading = () => {
+  const t = useTranslate();
+  return <LoadingContainer>{t('加载中...')}</LoadingContainer>
+};
 
 const Content = () =>  {
   const themeMode = useThemeMode();
@@ -44,8 +51,8 @@ const Content = () =>  {
           width={resizerLeft}
           height="calc(100vh - 30px)"
           defaultLanguage="less"
-          loading={<Loading>Loading...</Loading>}
-          defaultValue={introduction}
+          loading={<Loading />}
+          value={value}
           onChange={setValue}
         />
         <ColumnResizer />
@@ -54,7 +61,7 @@ const Content = () =>  {
           width={window.innerWidth - resizerLeft - 10}
           height="calc(100vh - 30px)"
           defaultLanguage="javascript"
-          loading={<Loading>Loading...</Loading>}
+          loading={<Loading />}
           options={{domReadOnly: true, readOnly: true, cursorBlinking: 'solid'}}
           value={result}
         />
@@ -65,13 +72,15 @@ const Content = () =>  {
 
 const ThemeHolder = styled.div<{mode: 'dark' | 'light'}>`
   ${props => props.mode === 'dark' ? `
-  --background-color: #111;
-  --editor-background-color: #1e1e1e;
-  --text-color: #fff;
+    --background-color: #111;
+    --editor-background-color: #1e1e1e;
+    --text-color: #fff;
+    --description-color: #666;
   ` : `
-  --background-color: #eee;
-  --editor-background-color: #fff;
-  --text-color: #000;
+    --background-color: #eee;
+    --editor-background-color: #fff;
+    --text-color: #000;
+    --description-color: #999;
   `}
 `;
 

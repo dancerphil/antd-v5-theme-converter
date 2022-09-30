@@ -2,7 +2,11 @@
 - [x] resizer
 - [x] header
 - [x] light/dark mode
-- [ ] prettier config
+- [x] translate
+- [ ] settings
+  - prettier config
+  - ignore not supported
+  - ignore palette
 - [ ] visit adapter
 - [ ] warning about less functions
 - [ ] full adapter

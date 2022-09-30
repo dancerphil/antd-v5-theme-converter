@@ -1,6 +1,4 @@
-export const defaultLess = `// 在此处键入你的 less 变量列表，如下为 antd 的 less 主题：
-
-@blue-base: #1890ff;
+export const defaultLess = `@blue-base: #1890ff;
 @blue-1: color(~\`colorPalette('@{blue-6}', 1) \`);
 @blue-2: color(~\`colorPalette('@{blue-6}', 2) \`);
 @blue-3: color(~\`colorPalette('@{blue-6}', 3) \`);
