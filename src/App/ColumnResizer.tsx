@@ -10,11 +10,11 @@ const setResizerLeft = resizerLeftRegion.set;
 
 const StyledAnchor = styled.div`
   width: 10px;
-  background-color: #111;
+  background-color: var(--background-color);
   cursor: col-resize;
 `;
 
-function ColumnResizer() {
+export const ColumnResizer = () => {
   const ref = useRef(null);
 
   useLayoutEffect(
@@ -23,7 +23,8 @@ function ColumnResizer() {
       const handleMouseMove = (e: MouseEvent) => {
         if (down) {
           const {clientX} = e;
-          setResizerLeft(clientX);
+          // 自身宽度 10
+          setResizerLeft(clientX - 5);
         }
       };
       const handleMouseDown = (e: MouseEvent) => {
@@ -48,6 +49,4 @@ function ColumnResizer() {
   );
 
   return <StyledAnchor ref={ref} />
-}
-
-export default ColumnResizer;
+};

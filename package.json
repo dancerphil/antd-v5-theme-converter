@@ -1,6 +1,7 @@
 {
   "private": true,
   "dependencies": {
+    "@ant-design/icons": "^4.7.0",
     "@ctrl/tinycolor": "^3.4.1",
     "@emotion/css": "^11.9.0",
     "@emotion/react": "^11.9.3",
