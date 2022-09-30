@@ -30,15 +30,22 @@ const findPairValue = (pairs: Record<string, string>, key: string) => {
   return value;
 };
 
-export const pairsToTheme = (pairs: Record<string, string>): ThemeConfig => {
+interface OptionsPairsToTheme {
+  ignoreColorPalettes: boolean
+}
+
+export const pairsToTheme = (pairs: Record<string, string>, options?: OptionsPairsToTheme): ThemeConfig => {
+  const {ignoreColorPalettes} = options ?? {};
   const theme: ThemeConfig = {};
-  colorPalettes.forEach(color => {
-    const key = `@${color}`;
-    const value = findPairValue(pairs, key);
-    if(value) {
-      set(theme, ['token', color], value)
-    }
-  });
+  if (!ignoreColorPalettes) {
+    colorPalettes.forEach(color => {
+      const key = `@${color}`;
+      const value = findPairValue(pairs, key);
+      if (value) {
+        set(theme, ['token', color], value)
+      }
+    });
+  }
   Object.entries(adapter).forEach(([key, path]) => {
     const value = findPairValue(pairs, key);
     if(value) {
@@ -48,45 +55,47 @@ export const pairsToTheme = (pairs: Record<string, string>): ThemeConfig => {
   return theme;
 };
 
+interface Options {
+  ignoreUnsupportedLessFunctions: boolean
+}
+
 const toValidKey = (key: string) => key.includes('-') ? `'${key}'`: key;
 
 // 将 theme object 转成代码
-const toNaiveString = (object: object): string => {
-  if(typeof object !== 'object') {
-    if(new TinyColor(object).isValid) {
-      return `'${String(object)}',`
-    }
-    return `"Not Support: ${object}",`;
-  }
+const toNaiveString = (object: object, options?: Options): string => {
+  const {ignoreUnsupportedLessFunctions} = options ?? {};
   const lines = Object.entries(object).map(([key, value]) => {
-    return `${toValidKey(key)}: ${toNaiveString(value)}`
-  });
+    if(typeof value === 'object') {
+      return `${toValidKey(key)}: ${toNaiveString(value, options)}`
+    }
+
+    const isValid = new TinyColor(value).isValid;
+    const validValue = isValid ? `'${String(value)}',` : `"Not Support: ${value}",`;
+    if (ignoreUnsupportedLessFunctions && !isValid) {
+      return '';
+    }
+    return `${toValidKey(key)}: ${validValue}`
+  }).filter(Boolean);
 
   return [`{`, ...lines, `},`].join('\n');
 };
 
-const toNaiveCode = (theme: ThemeConfig): string => {
-  return `const theme = ${toNaiveString(theme).slice(0, -1)};`
+const toNaiveCode = (theme: ThemeConfig, options?: Options): string => {
+  return `const theme = ${toNaiveString(theme, options).slice(0, -1)};`
 };
 
-const themeToCode = (theme: ThemeConfig) => {
-  return format(toNaiveCode(theme), {
+interface OptionsThemeToCode extends Options {
+  tabWidth: number,
+  trailingComma: 'none' | 'es5' | 'all'
+}
+
+export const themeToCode = (theme: ThemeConfig, options?: OptionsThemeToCode) => {
+  const {tabWidth = 2, trailingComma = 'es5', ignoreUnsupportedLessFunctions = false} = options ?? {}
+  return format(toNaiveCode(theme, {ignoreUnsupportedLessFunctions}), {
     parser: 'babel',
     plugins: [parserBabel],
-    tabWidth: 2,
     singleQuote: true,
+    tabWidth,
+    trailingComma,
   });
-};
-
-export const lessToCode = (less: string): string => {
-  try {
-    const pairs = lessToPairs(less);
-    const theme = pairsToTheme(pairs);
-    const code = themeToCode(theme);
-    return code;
-  }
-  catch (e) {
-    return `转换过程中有以下错误：
-${e.message}`;
-  }
 };

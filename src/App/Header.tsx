@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import {ThemeButton} from "./Theme";
 import {useTranslate, TranslateButton} from './Translate';
+import {SettingsButton} from "./Settings";
 
 const Container = styled.div`
   display: flex;
@@ -34,6 +35,7 @@ export const Header = () => {
       <Right>
         <TranslateButton />
         <ThemeButton />
+        <SettingsButton />
       </Right>
     </Container>
   )

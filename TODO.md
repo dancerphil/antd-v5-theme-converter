@@ -3,7 +3,7 @@
 - [x] header
 - [x] light/dark mode
 - [x] translate
-- [ ] settings
+- [x] settings
   - prettier config
   - ignore not supported
   - ignore palette

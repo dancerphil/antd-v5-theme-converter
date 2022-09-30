@@ -1,21 +1,17 @@
 import styled from "@emotion/styled";
 import Editor from "@monaco-editor/react";
-import {useState} from "react";
-import {ConfigProvider, theme} from 'antd';
-import {lessToCode} from './utils';
+import {useMemo, useState} from "react";
+import {lessToPairs, pairsToTheme, themeToCode} from './utils';
 import {Header} from './Header';
 import {ColumnResizer, useResizerLeft} from "./ColumnResizer";
 import {defaultLess} from "./defaultLess";
-import {useThemeMode} from "./Theme";
+import {useThemeMode, ThemeProvider} from "./Theme";
 import {useTranslate} from "./Translate";
+import {useIgnoreColorPalettes, useIgnoreUnsupportedLessFunctions, useTabWidth, useTrailingComma} from "./Settings";
 
 const introduction = defaultLess;
-// const introduction = `// 在此处键入你的 less 变量列表，如：
-// @primary-color: #1890ff;
-// @success-color: #52c41a;
-// `;
 
-const Container  = styled.div`
+const Content  = styled.div`
   display: flex;
 `;
 
@@ -35,17 +31,39 @@ const Loading = () => {
   return <LoadingContainer>{t('加载中...')}</LoadingContainer>
 };
 
-const Content = () =>  {
+const useCodeResult = (less: string) => {
+  const ignoreColorPalettes = useIgnoreColorPalettes();
+  const ignoreUnsupportedLessFunctions = useIgnoreUnsupportedLessFunctions();
+  const tabWidth = useTabWidth();
+  const trailingComma = useTrailingComma();
+  return useMemo(
+    () => {
+      try {
+        const pairs = lessToPairs(less);
+        const theme = pairsToTheme(pairs, {ignoreColorPalettes});
+        const code = themeToCode(theme, {ignoreUnsupportedLessFunctions, tabWidth, trailingComma});
+        return code;
+      }
+      catch (e) {
+        return `转换过程中有以下错误：
+${e.message}`;
+      }
+    },
+    [less, ignoreColorPalettes, ignoreUnsupportedLessFunctions, tabWidth, trailingComma]
+  );
+};
+
+const App = () =>  {
   const themeMode = useThemeMode();
   const resizerLeft = useResizerLeft();
   const [value = '', setValue] = useState<string | undefined>(introduction);
-  const result = lessToCode(value);
+  const codeResult = useCodeResult(value);
   const theme = themeMode === 'dark' ? 'vs-dark' : 'light';
 
   return (
-    <>
+    <ThemeProvider>
       <Header />
-      <Container>
+      <Content>
         <Editor
           theme={theme}
           width={resizerLeft}
@@ -62,38 +80,13 @@ const Content = () =>  {
           height="calc(100vh - 30px)"
           defaultLanguage="javascript"
           loading={<Loading />}
+          // options.tabSize 不 react，或许可以通过 instance 设置？
           options={{domReadOnly: true, readOnly: true, cursorBlinking: 'solid'}}
-          value={result}
+          value={codeResult}
         />
-      </Container>
-    </>
+      </Content>
+    </ThemeProvider>
   );
-};
-
-const ThemeHolder = styled.div<{mode: 'dark' | 'light'}>`
-  ${props => props.mode === 'dark' ? `
-    --background-color: #111;
-    --editor-background-color: #1e1e1e;
-    --text-color: #fff;
-    --description-color: #666;
-  ` : `
-    --background-color: #eee;
-    --editor-background-color: #fff;
-    --text-color: #000;
-    --description-color: #999;
-  `}
-`;
-
-const App = () => {
-  const themeMode = useThemeMode();
-  return (
-    <ThemeHolder mode={themeMode}>
-      {/* 改成这样会有 bug <ConfigProvider theme={themeMode === 'dark' ? {algorithm: theme.darkAlgorithm} : {}}>*/}
-      <ConfigProvider theme={themeMode === 'dark' ? {algorithm: theme.darkAlgorithm} : undefined}>
-        <Content></Content>
-      </ConfigProvider>
-    </ThemeHolder>
-  )
 };
 
 export default App;
