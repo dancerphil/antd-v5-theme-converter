@@ -4,7 +4,7 @@ import {useMemo, useState} from "react";
 import {lessToPairs, pairsToTheme, themeToCode} from './utils';
 import {Header} from './Header';
 import {ColumnResizer, useResizerLeft} from "./ColumnResizer";
-import {defaultLess} from "./defaultLess";
+import {defaultLess} from "./defaultLessComputed";
 import {useThemeMode, ThemeProvider} from "./Theme";
 import {useTranslate} from "./Translate";
 import {useIgnoreColorPalettes, useIgnoreUnsupportedLessFunctions, useTabWidth, useTrailingComma} from "./Settings";
